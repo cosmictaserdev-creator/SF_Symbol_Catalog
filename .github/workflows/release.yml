@@ -3,60 +3,63 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*"
-  workflow_dispatch:
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            task: packageReleaseMsi
-            glob: app/build/compose/binaries/main-release/msi/*.msi
-          - os: macos-latest
-            task: packageReleaseDmg
-            glob: app/build/compose/binaries/main-release/dmg/*.dmg
-          - os: ubuntu-latest
-            task: packageReleaseDeb
-            glob: app/build/compose/binaries/main-release/deb/*.deb
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - name: Package
-        run: ./gradlew :app:${{ matrix.task }} --no-daemon
-        shell: bash
-
-      - name: Upload installer
-        uses: actions/upload-artifact@v4
+          java-version: 17
+      - run: ./gradlew packageMsi
+      - uses: actions/upload-artifact@v4
         with:
-          name: sf-symbols-catalog-${{ matrix.os }}
-          path: ${{ matrix.glob }}
-          if-no-files-found: error
+          name: msi
+          path: app/build/compose/binaries/main/msi/*.msi
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: ./gradlew packageDmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmg
+          path: app/build/compose/binaries/main/dmg/*.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: ./gradlew packageDeb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: app/build/compose/binaries/main/deb/*.deb
 
   release:
-    needs: build
+    needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: dist
           merge-multiple: true
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: artifacts/**/*
           generate_release_notes: true
