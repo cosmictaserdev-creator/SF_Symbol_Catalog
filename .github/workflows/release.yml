@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,11 +18,15 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: ./gradlew packageMsi
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build MSI
+        run: ./gradlew packageMsi --no-daemon
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: msi
           path: app/build/compose/binaries/main/msi/*.msi
+          if-no-files-found: error
 
   build-macos:
     runs-on: macos-latest
@@ -31,11 +36,15 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: ./gradlew packageDmg
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build DMG
+        run: ./gradlew packageDmg --no-daemon
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: dmg
           path: app/build/compose/binaries/main/dmg/*.dmg
+          if-no-files-found: error
 
   build-linux:
     runs-on: ubuntu-latest
@@ -45,11 +54,17 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: ./gradlew packageDeb
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build DEB
+        run: |
+          chmod +x gradlew
+          ./gradlew packageDeb --no-daemon
+        shell: bash
       - uses: actions/upload-artifact@v4
         with:
           name: deb
           path: app/build/compose/binaries/main/deb/*.deb
+          if-no-files-found: error
 
   release:
     needs: [build-windows, build-macos, build-linux]
