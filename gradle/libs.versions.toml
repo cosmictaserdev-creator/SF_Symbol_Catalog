@@ -1,0 +1,24 @@
+[versions]
+kotlin = "2.4.10"
+compose-plugin = "1.12.0"
+kotlinxSerializationJson = "1.9.0"
+kotlinReflect = "2.4.10"
+kotlinxCoroutinesCore = "1.10.2"
+compose-macos-ui = "1.1.0"
+haze = "1.7.2"
+backdrop = "2.0.1"
+
+[libraries]
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlinReflect" }
+compose-macos-ui = { group = "dev.nucleusframework", name = "compose-macos-ui", version.ref = "compose-macos-ui" }
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
+haze-materials = { group = "dev.chrisbanes.haze", name = "haze-materials", version.ref = "haze" }
+backdrop = { group = "io.github.kyant0", name = "backdrop", version.ref = "backdrop" }
+
+[plugins]
+jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
