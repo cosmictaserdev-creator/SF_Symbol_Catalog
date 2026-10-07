@@ -17,8 +17,15 @@ private fun loadAppIcon(): Painter {
     return BitmapPainter(Image.makeFromEncoded(bytes).toComposeImageBitmap())
 }
 
-fun main() = nucleusApplication {
-    McpServer().start()
+fun main(args: Array<String>) {
+    if ("--mcp" in args) {
+        McpServer().runBlockingUntilExit()
+        return
+    }
+    launchCatalog()
+}
+
+private fun launchCatalog() = nucleusApplication {
     MacosDecoratedWindow(
         onCloseRequest = { exitApplication() },
         title = "SF Symbols Catalog",

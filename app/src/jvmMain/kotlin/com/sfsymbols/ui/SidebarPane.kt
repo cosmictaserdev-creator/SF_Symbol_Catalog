@@ -10,16 +10,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Icon
+import com.sfsymbols.data.SfSymbolIconResolver
+import com.sfsymbols.data.SfSymbolsCatalog
+import com.sfsymbols.data.SymbolMode
 import androidx.compose.ui.unit.dp
 import com.sfsymbols.viewmodel.CatalogViewModel
 import dev.nucleusframework.macoscompose.components.Surface
@@ -27,9 +33,49 @@ import dev.nucleusframework.macoscompose.components.Text
 import dev.nucleusframework.macoscompose.theme.GlassMaterialSize
 import dev.nucleusframework.macoscompose.theme.MacosTheme
 
+/** Rendering-style categories that the SF Symbols app lists under "Library". */
+private val LIBRARY_CATEGORIES = listOf("Multicolor", "Variable", "Draw")
+
+/** Sidebar glyph per row, matching the SF Symbols app's sidebar. */
+private val CATEGORY_ICONS = mapOf(
+    "All Symbols" to "square.grid.2x2",
+    "Favorites" to "heart",
+    "Multicolor" to "paintpalette",
+    "Variable" to "slider.horizontal.3",
+    "Draw" to "pencil.and.scribble",
+    "Communication" to "message",
+    "Weather" to "cloud.sun",
+    "Maps" to "map",
+    "Objects & Tools" to "folder",
+    "Devices" to "desktopcomputer",
+    "Camera & Photos" to "camera",
+    "Gaming" to "gamecontroller",
+    "Connectivity" to "antenna.radiowaves.left.and.right",
+    "Transportation" to "bicycle",
+    "Automotive" to "steeringwheel",
+    "Accessibility" to "accessibility",
+    "Privacy & Security" to "lock.shield",
+    "Human" to "person.crop.circle",
+    "Home" to "house",
+    "Fitness" to "figure.run",
+    "Nature" to "leaf",
+    "Editing" to "pencil",
+    "Text Formatting" to "textformat",
+    "Media" to "play.rectangle",
+    "Keyboard" to "command",
+    "Commerce" to "cart",
+    "Time" to "timer",
+    "Health" to "heart.text.square",
+    "Shapes" to "square.on.circle",
+    "Arrows" to "arrow.forward",
+    "Indices" to "a.circle",
+    "Math" to "sum",
+)
+
 /**
- * Leading pane: shortcuts + category list, floating as a rounded glass panel.
- * Light greyish rim with ~30% opacity border for a subtle glow.
+ * Leading pane styled after the SF Symbols app: a "Library" section
+ * (all, favorites, rendering styles) above the category list, each row
+ * led by its SF Symbol glyph.
  */
 @Composable
 public fun SidebarPane(
@@ -48,12 +94,10 @@ public fun SidebarPane(
                 .fillMaxSize()
                 .padding(top = 12.dp, bottom = 12.dp),
         ) {
-            SidebarSectionLabel("SF Symbols")
-            Spacer(Modifier.height(12.dp))
-            SidebarSectionLabel("Browse")
+            SidebarSectionLabel("Library")
             SidebarRow(
                 label = "All Symbols",
-                count = viewModel.filteredSymbols.size,
+                count = SfSymbolsCatalog.all.size,
                 selected = viewModel.selectedCategory == null && !viewModel.onlyPinned,
                 onClick = { viewModel.showAll() },
             )
@@ -63,11 +107,19 @@ public fun SidebarPane(
                 selected = viewModel.onlyPinned,
                 onClick = { viewModel.showOnlyPinned() },
             )
+            viewModel.categories.filter { it.first in LIBRARY_CATEGORIES }.forEach { (category, count) ->
+                SidebarRow(
+                    label = category,
+                    count = count,
+                    selected = viewModel.selectedCategory == category,
+                    onClick = { viewModel.filterCategory(category) },
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
             SidebarSectionLabel("Categories")
             LazyColumn(modifier = Modifier.weight(1f)) {
-                items(viewModel.categories) { (category, count) ->
+                items(viewModel.categories.filter { it.first !in LIBRARY_CATEGORIES }) { (category, count) ->
                     SidebarRow(
                         label = category,
                         count = count,
@@ -144,6 +196,20 @@ private fun SidebarRow(
             .padding(horizontal = 8.dp, vertical = 6.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            val glyph = remember(label) {
+                CATEGORY_ICONS[label]?.let { name ->
+                    SfSymbolsCatalog.all.firstOrNull { it.appleName == name }
+                        ?.let { SfSymbolIconResolver.resolve(it, SymbolMode.Monochrome) }
+                }
+            }
+            if (glyph != null) {
+                Icon(
+                    imageVector = glyph,
+                    contentDescription = null,
+                    tint = if (selected) cs.onAccent else cs.accent,
+                    modifier = Modifier.padding(end = 8.dp).size(16.dp),
+                )
+            }
             Text(
                 text = label,
                 color = if (selected) cs.onAccent else cs.textPrimary,

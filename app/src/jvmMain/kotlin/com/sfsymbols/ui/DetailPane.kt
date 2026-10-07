@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sfsymbols.data.SfSymbolIconResolver
 import com.sfsymbols.data.SfSymbolMetadata
+import com.sfsymbols.data.SymbolTags
 import com.sfsymbols.viewmodel.CatalogViewModel
 import dev.nucleusframework.macoscompose.components.ColorGrid
 import dev.nucleusframework.macoscompose.components.GroupBox
@@ -112,19 +114,16 @@ public fun DetailPane(
                         .border(1.dp, cs.borderSubtle, RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Crossfade(targetState = meta, label = "preview-symbol") { _ ->
-                        val vec = remember(meta, viewModel.mode) {
-                            SfSymbolIconResolver.resolve(meta, viewModel.mode)
+                    Crossfade(targetState = meta, label = "preview-symbol") { previewMeta ->
+                        val vec = remember(previewMeta, viewModel.mode) {
+                            SfSymbolIconResolver.resolve(previewMeta, viewModel.mode)
                         }
                         if (vec != null) {
-                            val ratio = (vec.viewportWidth / vec.viewportHeight).coerceIn(0.5f, 1.8f)
-                            val iconHeight = 110.dp
-                            val iconWidth = iconHeight * ratio
                             Icon(
                                 imageVector = vec,
-                                contentDescription = meta.appleName,
+                                contentDescription = previewMeta.appleName,
                                 tint = if (viewModel.tintIcon) viewModel.iconColor else Color.Unspecified,
-                                modifier = Modifier.size(iconWidth, iconHeight),
+                                modifier = Modifier.size(110.dp),
                             )
                         }
                     }
@@ -137,6 +136,16 @@ public fun DetailPane(
                 TAB_COLOR -> ColorTab(viewModel)
                 TAB_BG -> BgTab(viewModel)
                 else -> InfoTab(viewModel, meta)
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PushButton(onClick = { viewModel.copyAppleName(meta) }) {
+                    Text("Copy Name")
+                }
+                PushButton(onClick = { viewModel.copyCodeSnippet(meta) }) {
+                    Text("Copy Code")
+                }
             }
 
             viewModel.badgeText?.let { badge ->
@@ -170,14 +179,6 @@ private fun ColorTab(viewModel: CatalogViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PushButton(onClick = { viewModel.copyAppleName(viewModel.selectedSymbol!!) }) {
-                    Text("Copy Name")
-                }
-                PushButton(onClick = { viewModel.copyPascalName(viewModel.selectedSymbol!!) }) {
-                    Text("Copy Code")
-                }
-            }
         }
     }
 }
@@ -187,9 +188,9 @@ private fun BgTab(viewModel: CatalogViewModel) {
     val cs = MacosTheme.colorScheme
     GroupBox(label = "Background", modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 BACKGROUND_PALETTE.forEach { (color, label) ->
                     BackgroundSwatch(
@@ -212,14 +213,12 @@ private fun InfoTab(viewModel: CatalogViewModel, meta: SfSymbolMetadata) {
             Text(text = meta.appleName, color = cs.textPrimary)
             Text(text = "SfSymbols.${meta.pascalName}", color = cs.textSecondary)
             Text(text = meta.categories.joinToString(" · "), color = cs.textTertiary)
+            val tags = remember(meta) { SymbolTags.tagsFor(meta.appleName) }
+            if (tags.isNotEmpty()) {
+                Text(text = "Tags: " + tags.joinToString(", "), color = cs.textTertiary)
+            }
             Spacer(Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PushButton(onClick = { viewModel.copyAppleName(meta) }) {
-                    Text("Copy Name")
-                }
-                PushButton(onClick = { viewModel.copyPascalName(meta) }) {
-                    Text("Copy Code")
-                }
                 PushButton(onClick = { viewModel.toggleFavorite(meta) }) {
                     Icon(
                         imageVector = if (viewModel.isFavorite(meta)) Icons.Default.Favorite else Icons.Default.FavoriteBorder,

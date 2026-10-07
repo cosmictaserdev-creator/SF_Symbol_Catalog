@@ -253,80 +253,70 @@ private fun SymbolCard(
     val highlight = multiSelect && multiSelected
     val bg by animateColorAsState(
         when {
+            selected && !multiSelect -> cs.accent
             highlight -> cs.accent.copy(alpha = 0.22f)
-            selected -> cs.accent.copy(alpha = 0.12f)
-            else -> cs.surface
+            hovered -> cs.textPrimary.copy(alpha = 0.10f)
+            else -> cs.textPrimary.copy(alpha = 0.05f)
         },
         tween(150),
         label = "card-bg",
     )
-    val borderColor by animateColorAsState(
-        when {
-            highlight || selected -> cs.accent
-            hovered -> cs.textPrimary.copy(alpha = 0.18f)
-            else -> cs.borderSubtle
-        },
-        tween(150),
-        label = "card-border",
-    )
+    // SF Symbols app style: borderless rounded tile, name underneath.
     Column(
         modifier = Modifier
-            .aspectRatio(1f)
-            .clip(shape)
-            .background(bg)
-            .border(1.dp, borderColor, shape)
             .hoverable(interactionSource)
             .clickable(
                 indication = null,
                 interactionSource = interactionSource,
                 onClick = onClick,
-            )
-            .padding(6.dp),
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(if (hovered && !selected && !highlight) Color.White.copy(alpha = 0.06f) else Color.Transparent),
+                .fillMaxWidth()
+                .aspectRatio(1.25f)
+                .clip(shape)
+                .background(bg)
+                .then(if (highlight) Modifier.border(1.5.dp, cs.accent, shape) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
-            val ratio = (vector.viewportWidth / vector.viewportHeight).coerceIn(0.5f, 1.8f)
-            val iconHeight = 42.dp
-            val iconWidth = iconHeight * ratio
+            // Square bounds: Icon paints with ContentScale.Fit, keeping the true aspect ratio.
             Icon(
                 imageVector = vector,
                 contentDescription = null,
-                tint = cs.textPrimary,
-                modifier = Modifier.size(iconWidth, iconHeight),
+                tint = if (selected && !multiSelect) cs.onAccent else cs.textPrimary,
+                modifier = Modifier.fillMaxSize(0.42f),
             )
 
-            // Favorite heart (top-end corner, own click area)
-            val heartBg by animateColorAsState(
-                if (favorite) Color(0x33E0245E) else Color.Transparent,
-                tween(150),
-                label = "heart-bg",
-            )
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(heartBg)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onToggleFavorite,
-                    )
-                    .padding(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    imageVector = if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (favorite) "Remove favorite" else "Add favorite",
-                    tint = if (favorite) Color(0xFFE0245E) else cs.textTertiary,
-                    modifier = Modifier.size(18.dp),
+            // Favorite heart (top-end corner, own click area); shown on hover or when set.
+            if (favorite || hovered) {
+                val heartBg by animateColorAsState(
+                    if (favorite) Color(0x33E0245E) else Color.Transparent,
+                    tween(150),
+                    label = "heart-bg",
                 )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(heartBg)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onToggleFavorite,
+                        )
+                        .padding(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        imageVector = if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (favorite) "Remove favorite" else "Add favorite",
+                        tint = if (favorite) Color(0xFFE0245E) else cs.textTertiary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
             }
 
             // Multi-select check badge
@@ -349,11 +339,11 @@ private fun SymbolCard(
         Text(
             text = meta.appleName,
             color = cs.textSecondary,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 4.dp, start = 2.dp, end = 2.dp),
+                .padding(top = 6.dp, start = 2.dp, end = 2.dp),
         )
     }
 }
@@ -398,8 +388,6 @@ private fun SymbolListRow(
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val ratio = (vector.viewportWidth / vector.viewportHeight).coerceIn(0.5f, 1.8f)
-        val h = 28.dp
         Box(
             modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center,
@@ -408,7 +396,7 @@ private fun SymbolListRow(
                 imageVector = vector,
                 contentDescription = null,
                 tint = cs.textPrimary,
-                modifier = Modifier.size(h * ratio, h),
+                modifier = Modifier.size(28.dp),
             )
         }
         Text(

@@ -13,14 +13,16 @@ internal inline fun sfIcon(
     name: String,
     viewportWidth: Float,
     viewportHeight: Float,
-    defaultWidth: Float = 24f,
-    defaultHeight: Float = 24f,
     block: ImageVector.Builder.() -> Unit
 ): ImageVector {
+    // Preserve the symbol's true aspect ratio instead of forcing a 24x24 square,
+    // which stretched every non-square SF Symbol (e.g. 29.2x25.9 viewports).
+    val maxDimension = maxOf(viewportWidth, viewportHeight)
+    val scale = 24f / maxDimension
     return ImageVector.Builder(
         name = name,
-        defaultWidth = defaultWidth.dp,
-        defaultHeight = defaultHeight.dp,
+        defaultWidth = (viewportWidth * scale).dp,
+        defaultHeight = (viewportHeight * scale).dp,
         viewportWidth = viewportWidth,
         viewportHeight = viewportHeight
     ).apply(block).build()

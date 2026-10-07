@@ -1,0 +1,65 @@
+name: Build and test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            package: packageMsi
+            format: msi
+          - os: macos-latest
+            package: packageDmg
+            format: dmg
+          - os: ubuntu-latest
+            package: packageDeb
+            format: deb
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test and assemble MCP
+        shell: bash
+        run: bash ./gradlew jvmTest assembleMcp --no-daemon --console=plain
+      - name: Test MCP client connection
+        run: python scripts/test_mcp.py
+      - name: Build installer
+        shell: bash
+        run: bash ./gradlew ${{ matrix.package }} --no-daemon --console=plain
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: app/build/reports/tests/jvmTest/
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.format }}
+          path: app/build/compose/binaries/main/${{ matrix.format }}/*.${{ matrix.format }}
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mcp-${{ matrix.os }}
+          path: app/build/mcp/
+          if-no-files-found: error

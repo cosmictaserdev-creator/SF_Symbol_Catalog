@@ -3,11 +3,10 @@ package com.sfsymbols.mcp
 import com.sfsymbols.data.FuzzySearch
 import com.sfsymbols.data.SfSymbolMetadata
 import com.sfsymbols.data.SfSymbolsCatalog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
+import java.io.BufferedReader
+import java.io.OutputStreamWriter
+import java.io.PrintWriter
 
 /**
  * Minimal MCP (Model Context Protocol) server over stdio — newline-delimited
@@ -15,26 +14,16 @@ import kotlinx.serialization.json.*
  *  - search_symbols(query, category?, limit?) : fuzzy, ranked search
  *  - get_symbol(code)                         : resolve a pascalName to metadata
  *
- * Transported exactly like an LSP server (one JSON object per line on stdin,
- * responses on stdout), so it can be launched by any MCP client
- * (Claude, etc.) via `command` + `args`.
+ * Launch with --mcp. A single UTF-8 reader preserves pipelined messages;
+ * stdout contains only protocol responses and EOF stops the process.
  */
-@OptIn(ExperimentalSerializationApi::class)
 public class McpServer(
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-    private val readLine: () -> String? = { System.`in`.bufferedReader().readLine() },
-    private val writeLine: (String) -> Unit = { println(it); System.out.flush() },
+    private val input: BufferedReader = System.`in`.bufferedReader(Charsets.UTF_8),
+    private val output: PrintWriter = PrintWriter(OutputStreamWriter(System.out, Charsets.UTF_8), true),
 ) {
     private val json = Json
-
-    private val protocolVersion = "2024-11-05"
-
-    /** Start the server: launch a background coroutine that reads stdin. */
-    public fun start() {
-        scope.launch(Dispatchers.IO) {
-            runCatching { serve() }
-        }
-    }
+    private val protocolVersions = setOf("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
+    private class RpcError(val code: Int, message: String) : IllegalArgumentException(message)
 
     /** Run synchronously to completion (used by tests / non-window launches). */
     public fun runBlockingUntilExit() {
@@ -43,22 +32,39 @@ public class McpServer(
 
     private fun serve() {
         while (true) {
-            val line = readLine() ?: return
+            val line = input.readLine() ?: return
             if (line.isBlank()) continue
-            val message = runCatching { json.parseToJsonElement(line).jsonObject }.getOrNull()
-                ?: continue
-            handleMessage(message)
+            val element = try {
+                json.parseToJsonElement(line)
+            } catch (_: IllegalArgumentException) {
+                respondError(null, -32700, "Parse error")
+                continue
+            }
+            val message = element as? JsonObject
+            if (message == null) respondError(null, -32600, "Invalid request")
+            else handleMessage(message)
         }
     }
 
     private fun handleMessage(msg: JsonObject) {
-        val method = msg["method"]?.jsonPrimitive?.contentOrNull ?: return
         val id = msg["id"]
-
-        when (method) {
+        val method = (msg["method"] as? JsonPrimitive)?.takeIf { it.isString }?.content
+        val validId = id is JsonPrimitive && id != JsonNull && (id.isString || id.longOrNull != null)
+        if (msg["jsonrpc"] != JsonPrimitive("2.0") || method == null || ("id" in msg && !validId)) {
+            respondError(if (validId) id else null, -32600, "Invalid request")
+            return
+        }
+        // Notifications have no response, including unrecognized notifications.
+        if (id == null) return
+        try {
+            val params = msg["params"]?.let {
+                it as? JsonObject ?: throw RpcError(-32602, "'params' must be an object")
+            } ?: buildJsonObject { }
+            when (method) {
             "initialize" -> respond(id) {
+                val requested = requiredString(params, "protocolVersion")
                 buildJsonObject {
-                    put("protocolVersion", protocolVersion)
+                    put("protocolVersion", requested.takeIf { it in protocolVersions } ?: protocolVersions.first())
                     putJsonObject("capabilities") { putJsonObject("tools") {} }
                     putJsonObject("serverInfo") {
                         put("name", "sf-symbols-catalog")
@@ -66,26 +72,32 @@ public class McpServer(
                     }
                 }
             }
-            "notifications/initialized" -> { /* fire-and-forget */ }
             "ping" -> respond(id) { buildJsonObject { } }
             "tools/list" -> respond(id) { toolsList() }
             "tools/call" -> {
-                val params = msg["params"]?.jsonObject ?: JsonObject(emptyMap())
-                val toolName = params["name"]?.jsonPrimitive?.contentOrNull ?: ""
-                val args = params["arguments"]?.jsonObject ?: JsonObject(emptyMap())
-                try {
-                    val out = callTool(toolName, args)
-                    respond(id) { out }
-                } catch (e: Exception) {
-                    respondError(id, -32602, e.message ?: "tool error")
-                }
+                val toolName = requiredString(params, "name")
+                val args = params["arguments"]?.let {
+                    it as? JsonObject ?: throw RpcError(-32602, "'arguments' must be an object")
+                } ?: buildJsonObject { }
+                respond(id) { callTool(toolName, args) }
             }
-            "shutdown" -> respond(id) { buildJsonObject { } }
-            "exit" -> {
-                respond(id) { buildJsonObject { } }
-                kotlin.system.exitProcess(0)
+            else -> respondError(id, -32601, "Method not found: $method")
             }
+        } catch (e: RpcError) {
+            respondError(id, e.code, e.message ?: "Invalid params")
+        } catch (_: Exception) {
+            respondError(id, -32603, "Internal error")
         }
+    }
+
+    private fun requiredString(args: JsonObject, key: String): String =
+        optionalString(args, key)?.takeIf { it.isNotBlank() }
+            ?: throw RpcError(-32602, "'$key' is required and must be a nonblank string")
+
+    private fun optionalString(args: JsonObject, key: String): String? {
+        val value = args[key] ?: return null
+        return (value as? JsonPrimitive)?.takeIf { it.isString }?.content
+            ?: throw RpcError(-32602, "'$key' must be a string")
     }
 
     private fun toolsList(): JsonObject = buildJsonObject {
@@ -107,6 +119,8 @@ public class McpServer(
                             }
                             putJsonObject("limit") {
                                 put("type", "integer")
+                                put("minimum", 1)
+                                put("maximum", 300)
                                 put("description", "Max results to return (default 25)")
                             }
                         }
@@ -136,30 +150,38 @@ public class McpServer(
     private fun callTool(name: String, args: JsonObject): JsonObject {
         return when (name) {
             "search_symbols" -> {
-                val query = (args["query"] as? JsonPrimitive)?.contentOrNull ?: ""
-                val category = (args["category"] as? JsonPrimitive)?.contentOrNull
-                val limit = ((args["limit"] as? JsonPrimitive)?.contentOrNull?.toIntOrNull()
-                    ?: 25).coerceIn(1, 300)
-                if (query.isBlank()) throw IllegalArgumentException("'query' is required")
-                val results = FuzzySearch.search(query, limit = limit).filter { meta ->
-                    category == null || meta.categories.contains(category)
-                }
+                val query = requiredString(args, "query")
+                val category = optionalString(args, "category")
+                val limit = args["limit"]?.let {
+                    (it as? JsonPrimitive)?.takeUnless { value -> value.isString }?.intOrNull
+                        ?.takeIf { value -> value in 1..300 }
+                        ?: throw RpcError(-32602, "'limit' must be an integer from 1 to 300")
+                } ?: 25
+                // Filter the full ranked result before limiting so a category
+                // cannot lose matches to higher-ranked symbols outside it.
+                val results = FuzzySearch.search(query, limit = SfSymbolsCatalog.all.size)
+                    .filter { meta -> category == null || meta.categories.any { it.equals(category, true) } }
+                    .take(limit)
                 buildJsonObject {
                     putJsonArray("content") { add(textContent(symbolsJson(results))) }
                 }
             }
             "get_symbol" -> {
-                val code = (args["code"] as? JsonPrimitive)?.contentOrNull ?: ""
-                if (code.isBlank()) throw IllegalArgumentException("'code' is required")
+                val code = requiredString(args, "code")
                 val meta = SfSymbolsCatalog.all.firstOrNull {
                     it.pascalName.equals(code, ignoreCase = true) ||
                         it.appleName.equals(code, ignoreCase = true)
-                } ?: throw IllegalArgumentException("No symbol found for '$code'")
+                } ?: return buildJsonObject {
+                    put("isError", true)
+                    putJsonArray("content") {
+                        add(buildJsonObject { put("type", "text"); put("text", "No symbol found for '$code'") })
+                    }
+                }
                 buildJsonObject {
                     put("content", buildJsonArray { add(textContent(symbolJson(meta))) })
                 }
             }
-            else -> throw IllegalArgumentException("Unknown tool: $name")
+            else -> throw RpcError(-32602, "Unknown tool: $name")
         }
     }
 
@@ -185,11 +207,7 @@ public class McpServer(
     private fun respond(id: JsonElement?, result: () -> JsonObject) {
         val obj = buildJsonObject {
             put("jsonrpc", "2.0")
-            if (id != null) {
-                put("id", id)
-            } else {
-                put("id", JsonPrimitive(null))
-            }
+            put("id", id ?: JsonNull)
             put("result", result())
         }
         write(obj)
@@ -198,7 +216,7 @@ public class McpServer(
     private fun respondError(id: JsonElement?, code: Int, message: String) {
         val obj = buildJsonObject {
             put("jsonrpc", "2.0")
-            if (id != null) put("id", id) else put("id", JsonPrimitive(null))
+            put("id", id ?: JsonNull)
             putJsonObject("error") {
                 put("code", code)
                 put("message", message)
@@ -208,6 +226,7 @@ public class McpServer(
     }
 
     private fun write(obj: JsonObject) {
-        writeLine(json.encodeToString(JsonObject.serializer(), obj))
+        output.println(json.encodeToString(JsonObject.serializer(), obj))
+        output.flush()
     }
 }

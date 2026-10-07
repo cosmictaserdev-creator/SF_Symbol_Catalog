@@ -39,6 +39,12 @@ import dev.nucleusframework.macoscompose.icons.Icon
 import dev.nucleusframework.macoscompose.icons.LucideChevronLeft
 import dev.nucleusframework.macoscompose.theme.GlassMaterialSize
 import dev.nucleusframework.macoscompose.theme.MacosTheme
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.Json
+import java.io.File
 
 // Personal / project links. Edit these freely.
 private const val NAME = "cosmicTaser"
@@ -46,6 +52,7 @@ private const val PROJECT_URL = "https://cosmictaser.de5.net"
 private const val GITHUB_URL = "https://github.com/cosmictaserdev-creator"
 private const val KOFI_URL = "https://ko-fi.com/cosmictaser"
 private const val UPI_ID = "cosmictaser@okicici"
+private val mcpConfigJson = Json { prettyPrint = true }
 
 /**
  * Dedicated Settings screen: appearance toggle, MCP usage instructions and
@@ -57,6 +64,26 @@ public fun SettingsPane(
     modifier: Modifier = Modifier,
 ) {
     val cs = MacosTheme.colorScheme
+    val mcpLib = listOf(File("build/mcp/lib"), File("app/build/mcp/lib"))
+        .firstOrNull { it.isDirectory }
+        ?.absolutePath?.replace('\\', '/') ?: "/absolute/path/to/app/build/mcp/lib"
+    val mcpConfig = mcpConfigJson.encodeToString(
+        kotlinx.serialization.json.JsonObject.serializer(),
+        buildJsonObject {
+            put("mcpServers", buildJsonObject {
+                put("sf-symbols-catalog", buildJsonObject {
+                    put("command", "java")
+                    putJsonArray("args") {
+                        add("-Djava.awt.headless=true")
+                        add("-cp")
+                        add("$mcpLib/*")
+                        add("com.sfsymbols.MainKt")
+                        add("--mcp")
+                    }
+                })
+            })
+        },
+    )
     Column(modifier = modifier.fillMaxSize()) {
         TitleBar(
             navigationActions = {
@@ -101,8 +128,9 @@ public fun SettingsPane(
 
             GroupBox(label = "MCP (AI agent access)", modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "This app exposes a Model Context Protocol (MCP) server over stdio. " +
-                        "AI agents (Claude, etc.) can browse/search the full SF Symbols catalog.",
+                    text = "AI agents can search the catalog through a separate MCP process. " +
+                        "Build it with ./gradlew assembleMcp, then add the configuration below to your client. " +
+                        "Java 21+ must be available to the client; use its full path if needed.",
                     color = cs.textSecondary,
                 )
                 Spacer(Modifier.height(10.dp))
@@ -116,10 +144,7 @@ public fun SettingsPane(
                 Text(text = "MCP client config", color = cs.textPrimary, fontWeight = FontWeight.SemiBold)
                 SelectionContainer {
                     Text(
-                        text = "\"sf-symbols-catalog\": {\n" +
-                            "  \"command\": \"java\",\n" +
-                            "  \"args\": [\"-jar\", \"/path/to/app-jvm.jar\"]\n" +
-                            "}",
+                        text = mcpConfig,
                         color = cs.textTertiary,
                     )
                 }

@@ -10,6 +10,7 @@ import com.sfsymbols.data.SfSymbolMetadata
 import com.sfsymbols.data.SfSymbolsCatalog
 import com.sfsymbols.data.SymbolMode
 import com.sfsymbols.util.copyToClipboard
+import com.sfsymbols.util.composeSnippet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,7 +21,9 @@ import kotlinx.coroutines.launch
  * Central state holder for the SF Symbols catalog.
  * Plain Compose state + coroutines (no Android ViewModel dependency).
  */
-public class CatalogViewModel {
+public class CatalogViewModel(
+    private val clipboardWriter: (String) -> Unit = ::copyToClipboard,
+) {
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -95,13 +98,21 @@ public class CatalogViewModel {
             .map { it.key to it.value }
     }
 
-    public val filteredSymbols: List<SfSymbolMetadata>
-        get() = computeFiltered()
+    /**
+     * Result of the active query/category/pinned filter. Recomputed only when
+     * one of those inputs actually changes, so recomposition stays free.
+     */
+    public var filteredSymbols: List<SfSymbolMetadata> by mutableStateOf(emptyList())
+        private set
 
     public val pinnedSymbols: List<SfSymbolMetadata>
         get() = allSymbols.filter { it.appleName in pinnedIds }
 
-    private fun computeFiltered(): List<SfSymbolMetadata> {
+    init {
+        recomputeFiltered()
+    }
+
+    private fun recomputeFiltered() {
         val q = query.trim()
         val cat = selectedCategory
         val base = when {
@@ -109,14 +120,19 @@ public class CatalogViewModel {
             else -> allSymbols
         }
         val scoped = if (cat == null) base else base.filter { it.categories.contains(cat) }
-        if (q.isEmpty()) return scoped
-        val fuzzy = FuzzySearch.search(q, limit = 300)
-        return if (cat == null && !onlyPinned) fuzzy
-        else fuzzy.filter { m -> scoped.any { it.appleName == m.appleName } }
+        filteredSymbols = when {
+            q.isEmpty() -> scoped
+            cat == null && !onlyPinned -> FuzzySearch.search(q, limit = 300)
+            else -> {
+                val allowed = scoped.mapTo(HashSet(scoped.size)) { it.appleName }
+                FuzzySearch.search(q, limit = allSymbols.size).filter { it.appleName in allowed }.take(300)
+            }
+        }
     }
 
     public fun search(text: String) {
         query = text
+        recomputeFiltered()
         if (selectedSymbol == null && filteredSymbols.isNotEmpty()) {
             selectedSymbol = filteredSymbols.first()
         }
@@ -125,16 +141,19 @@ public class CatalogViewModel {
     public fun filterCategory(category: String?) {
         selectedCategory = category
         onlyPinned = false
+        recomputeFiltered()
     }
 
     public fun showOnlyPinned() {
         onlyPinned = true
         selectedCategory = null
+        recomputeFiltered()
     }
 
     public fun showAll() {
         onlyPinned = false
         selectedCategory = null
+        recomputeFiltered()
     }
 
     public fun togglePin(meta: SfSymbolMetadata) {
@@ -145,6 +164,7 @@ public class CatalogViewModel {
         }
         pinnedIds = next
         PinnedSymbols.save(next)
+        recomputeFiltered()
     }
 
     public fun selectSymbol(meta: SfSymbolMetadata) {
@@ -214,6 +234,7 @@ public class CatalogViewModel {
         else pinnedIds + meta.appleName
         pinnedIds = next
         PinnedSymbols.save(next)
+        recomputeFiltered()
     }
 
     public fun isFavorite(meta: SfSymbolMetadata): Boolean = meta.appleName in pinnedIds
@@ -221,19 +242,24 @@ public class CatalogViewModel {
     public fun isPinned(meta: SfSymbolMetadata): Boolean = meta.appleName in pinnedIds
 
     public fun copyAppleName(meta: SfSymbolMetadata) {
-        copyToClipboard(meta.appleName)
-        showBadge("Copied \"${meta.appleName}\"")
+        copyText(meta.appleName, "Copied \"${meta.appleName}\"")
     }
 
     public fun copyPascalName(meta: SfSymbolMetadata) {
-        copyToClipboard(meta.pascalName)
-        showBadge("Copied \"${meta.pascalName}\"")
+        copyText(meta.pascalName, "Copied \"${meta.pascalName}\"")
     }
 
     public fun copyCodeSnippet(meta: SfSymbolMetadata) {
-        val prefix = if (mode == SymbolMode.Dualtone) "SfSymbols.Dualtone." else "SfSymbols.Monochrome."
-        copyToClipboard("$prefix${meta.pascalName}")
-        showBadge("Copied code snippet")
+        copyText(composeSnippet(meta, mode, iconColor, tintIcon, backgroundColor), "Copied Compose code")
+    }
+
+    private fun copyText(text: String, success: String) {
+        try {
+            clipboardWriter(text)
+            showBadge(success)
+        } catch (_: Exception) {
+            showBadge("Clipboard unavailable. Try copying again.")
+        }
     }
 
     private fun showBadge(text: String) {

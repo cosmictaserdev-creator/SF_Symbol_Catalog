@@ -1,0 +1,529 @@
+# Far-guess search tags for SF Symbols.
+# Format: key: tag tag tag
+# key = one dot-separated segment of an Apple symbol name ("trash" matches
+# trash, trash.fill, trash.circle, ...) or a full apple name ("wand.and.stars").
+# A symbol's tags = union of its segments' tags + its full-name tags.
+# Lines starting with # are comments.
+
+# --- structure / modifiers ---
+fill: solid filled
+slash: off disabled no none mute block hidden
+badge: notification dot alert
+plus: add new create more positive
+minus: remove subtract less negative
+xmark: close cancel delete remove x cross exit dismiss wrong
+checkmark: check done ok yes tick confirm success complete correct approve
+exclamationmark: warning alert error important attention danger caution
+questionmark: help question unknown faq support what
+ellipsis: more menu dots options overflow etc
+dashed: dotted outline placeholder
+dotted: dashed placeholder
+filled: solid
+rotate: turn spin orientation
+counterclockwise: undo back rotate left anticlockwise
+clockwise: redo rotate right
+inverse: negative invert
+trianglebadge: warning alert
+lefthalf: half split
+righthalf: half split
+stack: pile layers multiple many
+inset: frame border
+open: unlock opened
+closed: shut locked
+
+# --- arrows / navigation ---
+arrow: direction pointer move navigate go
+arrowshape: direction pointer move navigate go
+arrowtriangle: play direction pointer caret
+trianglehead: arrow direction caret
+chevron: arrow caret next back expand collapse more
+forward: next skip ahead fastforward
+backward: previous back rewind
+up: top upload raise increase north
+down: bottom download lower decrease south
+left: back previous west
+right: next forward east
+uturn: return back undo reverse
+turn: direction route
+return: enter back reply
+repeat: loop again replay cycle
+shuffle: random mix
+circulate: loop cycle
+merge: join combine
+swap: exchange switch flip trade
+expand: fullscreen enlarge grow maximize
+compress: shrink minimize smaller
+move: drag reposition
+resize: scale dimension
+distribute: spread spacing
+align: alignment justify layout
+branch: git fork split
+
+# --- communication ---
+bubble: chat message comment talk speech conversation text sms reply
+message: chat sms imessage text conversation talk
+envelope: mail email letter inbox message post
+mail: email envelope letter
+phone: call telephone dial contact ring mobile
+telephone: phone call dial contact ring
+video: camera facetime record movie film call
+waveform: audio sound voice music siri equalizer recording
+mic: microphone audio voice record podcast sing
+microphone: mic audio voice record podcast sing dictation
+speaker: sound volume audio loud music
+megaphone: announce loud broadcast marketing promotion shout
+bell: notification alert alarm ring reminder
+antenna: signal broadcast radio wireless
+radiowaves: signal wireless broadcast radio wifi
+wifi: internet wireless network signal online connection
+personalhotspot: tether hotspot share internet
+cellularbars: signal reception network mobile
+network: connection internet web
+globe: world internet web earth language international browser
+link: url chain hyperlink connect attach
+paperplane: send share message telegram submit
+paperclip: attach attachment file clip
+at: email mention handle
+quote: citation blockquote
+captions: subtitles cc
+translate: language localization
+character: letter text type font
+textformat: font text typography type
+text: words writing type document
+signature: sign autograph
+phonetic: language speech
+braille: blind accessibility
+
+# --- people ---
+person: user profile account avatar human people contact member
+figure: person human body people
+face: emoji smile expression person
+smiling: happy smile emoji joy
+hand: gesture palm wave
+thumbsup: like approve good yes upvote agree
+thumbsdown: dislike bad no downvote disagree
+heart: love like favorite favourite health romance valentine
+eye: view see watch visible show look preview vision
+eyes: look see watch
+ear: hear listen sound audio hearing
+mouth: lips talk speak eat
+nose: smell
+brain: mind think ai intelligence smart memory idea
+lungs: breath breathing respiratory health
+mustache: beard face
+eyebrow: face expression
+holdinghands: couple love friends relationship
+group: team people users community
+child: kid baby young
+pawprint: pet animal dog cat
+accessibility: a11y disability universal access
+wheelchair: accessibility disabled handicap
+voiceover: screenreader accessibility blind
+hearingdevice: hearing aid accessibility deaf
+
+# --- objects / tools ---
+trash: delete remove bin garbage rubbish discard waste
+bin: trash delete garbage
+folder: directory files storage archive collection
+document: file page paper doc pdf
+doc: document file page paper
+note: memo notes text
+book: read library reading literature study education ebook
+books: library reading
+bookmark: save favorite later saved
+newspaper: news article press
+magazine: news article reading
+pencil: edit write compose draw pen modify
+pen: write edit
+paintbrush: paint art draw design brush
+paintpalette: colors art paint design theme
+eyedropper: color picker pipette sample
+scissors: cut clip trim
+ruler: measure length size
+hammer: build tool construct fix repair
+wrench: settings tool fix repair configure maintenance
+screwdriver: tool fix repair
+gearshape: settings preferences configure options cog gear setup system
+gear: settings preferences configure options cog
+slider: settings adjust controls filter equalizer tune
+dial: knob adjust control
+lock: secure password private security locked protect privacy closed
+key: password unlock access security login credential
+shield: security protect safe defense antivirus privacy
+lasso: select selection
+magnifyingglass: search find zoom lookup explore query look
+magnify: search zoom
+loupe: zoom magnify search
+viewfinder: scan camera capture focus
+scanner: scan barcode
+qrcode: scan barcode code
+barcode: scan product price
+tag: label price category sale
+flag: report mark country goal milestone
+pin: location place stick pinned
+mappin: location place map marker gps address
+map: location directions navigation travel route gps
+location: gps navigation direction arrow place where
+signpost: direction route sign navigation
+compass: direction navigation north explore
+binoculars: search look explore find
+lightbulb: idea tip hint light bright think suggestion
+lamp: light bright
+flashlight: torch light
+bolt: lightning electric power energy fast charge flash
+flame: fire hot burn trending lit
+battery: power charge energy
+plug: power electric socket
+powerplug: power electric socket
+poweroutlet: power socket electric plug wall
+cable: wire cord connector
+trophy: award win prize champion achievement winner
+medal: award prize winner achievement
+crown: king queen royal premium vip best
+star: favorite rating rate bookmark important featured
+sparkles: magic ai new shine clean special effects auto
+sparkle: magic shine new
+wand: magic ai auto fix enhance
+gift: present birthday reward surprise
+balloon: party birthday celebrate
+party: celebrate birthday fun
+popper: party celebrate confetti
+birthday: party cake celebrate
+cake: birthday party dessert
+puzzlepiece: extension plugin addon game piece
+cube: 3d box object ar package
+shippingbox: package delivery box parcel shipping order
+archivebox: archive storage box save
+tray: inbox archive storage
+clipboard: paste copy clipboard checklist todo
+list: menu items todo checklist bullets
+checklist: todo tasks list
+calendar: date schedule event day month appointment plan
+clock: time hour watch alarm history schedule recent
+alarm: wake clock timer reminder
+timer: countdown stopwatch time clock
+stopwatch: timer time lap
+hourglass: wait loading time sand pending
+deskclock: time clock
+calendar: date schedule event day month
+umbrella: rain weather insurance protection
+suitcase: travel luggage work trip
+briefcase: work business job office career
+bag: shopping purchase store buy
+cart: shopping buy basket ecommerce store checkout
+basket: shopping buy cart
+creditcard: payment card bank pay money purchase visa
+banknote: money cash payment bill
+wallet: money payment cards purse
+dollarsign: money dollar price cost usd currency payment
+eurosign: money euro price currency
+sterlingsign: money pound gbp currency
+yensign: money yen currency
+indianrupeesign: money rupee inr currency india
+bitcoinsign: crypto money currency btc
+building: office company city bank
+bank: money finance institution
+storefront: shop store business market
+house: home building residence main
+door: exit enter entrance room
+bed: sleep hotel bedroom rest
+sofa: couch living furniture
+chair: seat furniture
+lightswitch: switch light toggle
+fan: cool air wind ventilation
+heater: heat warm
+thermometer: temperature heat weather fever
+spigot: tap water faucet
+shower: bath water
+bathtub: bath water
+toilet: restroom bathroom wc
+sink: kitchen water
+oven: cook bake kitchen
+refrigerator: fridge kitchen food cold
+washer: laundry clean wash
+dryer: laundry clothes
+dishwasher: kitchen dishes clean
+fork: food eat restaurant dining
+knife: food eat cut restaurant
+cup: coffee tea drink
+mug: coffee tea drink cup
+wineglass: wine drink alcohol bar
+takeoutbag: food delivery takeaway
+carrot: vegetable food
+fish: animal sea food
+cat: animal pet kitten
+dog: animal pet puppy
+bird: animal twitter fly
+hare: fast rabbit speed quick animal
+tortoise: slow turtle animal
+ladybug: bug debug insect
+ant: bug insect
+lizard: reptile animal
+leaf: nature eco green plant environment organic
+tree: nature forest plant
+camera: photo picture capture snapshot
+photo: image picture gallery photography pic
+film: movie video cinema
+movieclapper: movie film cinema video
+theatermasks: theater drama acting arts
+music: song audio note sound melody
+headphones: music audio listen sound
+tv: television screen monitor display show
+display: monitor screen desktop
+gamecontroller: game gaming play joystick console
+dice: game random luck chance
+printer: print paper document
+scroll: document paper old history
+graduationcap: education school student learn study university
+stethoscope: doctor medical health
+cross: medical health hospital
+pills: medicine drugs pharmacy health
+pill: medicine drugs pharmacy health
+syringe: vaccine injection medical shot
+bandage: injury first aid health
+staroflife: medical emergency ambulance
+waveform.path.ecg: heartbeat health pulse
+ecg: heartbeat health pulse
+facemask: mask health covid
+drop: water liquid ink rain
+droplets: water humidity rain
+flask: science chemistry lab experiment
+testtube: science lab chemistry
+atom: science physics react
+microbe: virus bacteria germ
+dumbbell: gym fitness workout exercise weights
+sportscourt: sports game
+soccerball: football sport
+football: sport game
+basketball: sport game
+tennis: sport game racket
+megaphone: announce loud
+puzzlepiece: plugin
+
+# --- devices ---
+iphone: phone mobile device smartphone apple
+ipad: tablet device apple
+macbook: laptop computer mac
+laptopcomputer: laptop computer notebook
+desktopcomputer: computer pc desktop monitor imac
+applewatch: watch smartwatch wearable
+watch: smartwatch time wearable
+airpods: earbuds headphones audio
+earbuds: headphones audio
+homepod: speaker smart home siri
+keyboard: type typing input keys
+computermouse: mouse pointer
+cpu: processor chip hardware
+memorychip: ram chip hardware
+externaldrive: storage disk hdd backup
+internaldrive: storage disk hdd
+server: rack datacenter hosting backend
+terminal: console command line shell cli code
+apple: mac logo
+icloud: cloud sync backup storage
+cloud: weather sky storage sync upload backup
+airplay: cast stream mirror screen
+screen: display monitor
+cursor: pointer mouse
+pointer: cursor mouse arrow click
+command: cmd shortcut mac key
+option: alt key modifier
+shift: key uppercase
+capslock: uppercase key
+escape: esc key exit
+delete: backspace remove erase
+power: on off shutdown start
+poweron: power start
+poweroff: shutdown off
+sdcard: storage memory
+simcard: mobile carrier sim
+esim: mobile carrier sim
+
+# --- media / playback ---
+play: start run resume video media
+pause: stop hold wait break
+stop: end halt square
+record: rec capture recording
+backward: rewind previous
+forward: fastforward next skip
+playpause: toggle media
+eject: remove disc
+speaker: volume sound
+livephoto: photo motion
+pip: picture-in-picture video
+memories: photos album
+
+# --- weather / nature ---
+sun: sunny weather day bright light brightness hot summer
+moon: night dark sleep mode lunar
+star: night
+snowflake: cold winter snow freeze ice frozen
+snow: cold winter
+rain: weather wet storm
+cloud: weather overcast
+bolt: storm thunder
+wind: breeze weather air
+tornado: storm disaster weather
+hurricane: storm disaster weather
+fog: mist weather
+smoke: fire pollution
+rainbow: pride colors weather lgbt
+thermometer: temperature
+mountain: nature landscape hike
+water: ocean sea liquid
+waves: ocean sea water beach
+flame: fire
+leaf: plant
+globe: earth planet
+
+# --- transport ---
+car: vehicle drive auto automobile transport
+bus: transit public transport
+tram: transit train
+train: transit rail railway
+airplane: flight plane travel trip fly airport
+ferry: boat ship
+sailboat: boat sail ship
+bicycle: bike cycling ride
+scooter: transport ride
+motorcycle: bike motorbike
+fuelpump: gas petrol fuel station
+steeringwheel: drive car
+road: street drive route
+lane: road traffic
+figure.walk: walk pedestrian person
+walk: pedestrian person hike
+run: running jog exercise fitness
+parkingsign: parking car
+ticket: event pass admission coupon
+location: gps
+
+# --- charts / shapes ---
+chart: graph statistics analytics data report stats
+graph: chart statistics analytics data
+gauge: speed meter performance dashboard dial
+grid: layout tiles dashboard apps
+square: box tile shape
+circle: round shape ring dot
+rectangle: box card screen
+triangle: shape warning
+diamond: shape rhombus gem
+hexagon: shape
+octagon: stop sign shape
+capsule: pill rounded shape
+oval: ellipse shape
+seal: verified badge certified
+rosette: award badge
+infinity: forever loop unlimited endless
+percent: percentage discount sale
+number: hashtag digits
+numbersign: hashtag pound number
+function: math formula
+sum: total math sigma
+divide: math division
+multiply: math times
+equal: math equals
+pi: math
+squareroot: math
+plusminus: math
+
+# --- layout / UI ---
+sidebar: panel menu layout
+menubar: menu bar mac
+macwindow: window app mac
+uiwindow: window
+widget: widgets home screen
+app: application
+apps: applications home screen
+square.grid.2x2: apps grid dashboard categories
+line: menu
+lines: menu hamburger
+textbox: input field form
+selection: select
+switch: toggle
+togglepower: power toggle
+target: goal aim focus bullseye
+scope: target aim
+crosshair: aim target
+view: layout display
+
+# --- privacy / security ---
+faceid: biometric unlock security
+touchid: fingerprint biometric unlock security
+opticid: biometric unlock security
+hand.raised: privacy stop block
+nosign: forbidden block ban prohibited
+
+# --- full-name overrides ---
+house: home main start
+house.fill: home main start
+gearshape: settings
+gearshape.fill: settings
+trash: delete
+trash.fill: delete
+square.and.arrow.up: share export send upload
+square.and.arrow.down: download save import
+square.and.arrow.up.fill: share export send upload
+arrow.clockwise: refresh reload sync update retry
+arrow.counterclockwise: undo reset back revert
+arrow.triangle.2.circlepath: sync refresh reload update loop
+arrow.2.circlepath: sync refresh reload
+arrow.uturn.backward: undo back
+arrow.uturn.forward: redo
+arrow.up.arrow.down: sort order swap
+line.3.horizontal: menu hamburger
+line.3.horizontal.decrease: filter sort
+line.3.horizontal.decrease.circle: filter sort
+slider.horizontal.3: settings filter adjust controls preferences
+wand.and.stars: magic ai enhance auto
+wand.and.sparkles: magic ai enhance auto
+sparkles: ai
+person.crop.circle: account profile user avatar
+person.circle: account profile user avatar
+person.2: users team friends group people
+person.3: users team group people crowd
+rectangle.portrait.and.arrow.right: logout signout exit leave
+rectangle.portrait.and.arrow.forward: logout signout exit
+person.badge.key: login signin auth
+info.circle: information about details help
+info: information about details help
+exclamationmark.triangle: warning alert caution
+xmark.circle: close cancel error
+checkmark.circle: done success ok complete
+checkmark.seal: verified certified approved
+doc.on.doc: copy duplicate clone
+doc.on.clipboard: paste copy
+plus.circle: add new create
+square.and.pencil: compose new write edit
+pencil.and.outline: edit write
+arrow.down.circle: download
+arrow.up.circle: upload
+icloud.and.arrow.up: upload backup sync
+icloud.and.arrow.down: download restore sync
+bell.badge: notification unread alert
+moon.zzz: sleep do-not-disturb dnd night
+zzz: sleep tired snooze nap
+bolt.horizontal: connected charging
+battery.100: full charged
+battery.0: empty dead low
+wifi.slash: offline disconnected no-internet
+eye.slash: hide hidden password invisible
+lock.open: unlock unlocked open
+magnifyingglass: search
+globe: language web
+cart.badge.plus: add to cart buy
+heart.text.square: health app
+waveform: audio
+house.and.flag: home
+command: shortcut
+keyboard: shortcut
+ellipsis.circle: more options menu
+ellipsis.vertical: more kebab menu
+square.grid.2x2: apps
+list.bullet: list menu todo items
+calendar.badge.plus: add event schedule
+clock.arrow.circlepath: history recent restore backup
+arrow.left.arrow.right: swap exchange compare
+arrow.down.to.line: download save
+tray.and.arrow.down: download inbox save
+paperplane: send
